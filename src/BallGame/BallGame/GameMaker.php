@@ -16,7 +16,7 @@ class GameMaker {
         ]);
         $connection->on("open", function (ClientSession $session) use ($gameRealm) {
             echo "Making a new game on realm $gameRealm\n";
-            $session->subscribe("game", (new Game())->handleEvents);
+            $session->subscribe("game", (new Game($session))->handleEvents);
         });
         $connection->open();
     }
