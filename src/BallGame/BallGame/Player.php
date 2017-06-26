@@ -1,33 +1,43 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: Szymon
+ * Date: 14.06.2017
+ * Time: 12:40
+ */
 
 namespace BallGame;
 
 
 class Player
 {
-    private $downButtons = [
-        "up" => false,
-        "right" => false,
-        "down" => false,
-        "left" => false,
-    ];
     private $id;
+    private $pushArray = [
+        'up' => false,
+        'down' => false,
+        'left' => false,
+        'right' => false,
+        ];
 
     public function __construct($id)
     {
-        echo "Player $id is being created\n";
         $this->id = $id;
     }
 
-    public function getDownButtons() {
-        return $this->downButtons;
+    public function push($direction) {
+        echo "Player $this->id is pushing $direction now\n";
+        $this->pushArray[$direction] = true;
     }
 
-    public function pushButton($name) {
-        $this->downButtons[$name] = true;
+    public function release($direction) {
+        $this->pushArray[$direction] = false;
     }
 
-    public function releaseButton($name) {
-        $this->downButtons[$name] = false;
+    public function getPushArray() {
+        return $this->pushArray;
+    }
+
+    public function getId() {
+        return $this->id;
     }
 }
