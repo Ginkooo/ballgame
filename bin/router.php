@@ -7,7 +7,7 @@ use Thruway\Peer\Router;
 use Thruway\Transport\RatchetTransportProvider;
 
 $router = new Router();
-$transportProvider = new RatchetTransportProvider("127.0.0.1", 8080);
+$transportProvider = new RatchetTransportProvider("0.0.0.0", 8080);
 
 $router->addTransportProvider($transportProvider);
 

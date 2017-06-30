@@ -20,6 +20,7 @@ class ConnectionManager {
             $this->eventHandler->setClientSession($session);
             $session->subscribe('global', $this->eventHandler->globalHandler);
         });
+
         $client->start();
     }
 

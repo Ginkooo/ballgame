@@ -29,7 +29,7 @@ class Timer
             $session->publish('global', ['dupsko']);
         });
 
-        $loop->addPeriodicTimer(2, function() {
+        $loop->addPeriodicTimer(0.05, function() {
             $this->session->publish($this->gamePrivateTopic, ['UPDATE']);
         });
 

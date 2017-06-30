@@ -43,21 +43,21 @@ class EventHandler
                     $response = $this->makeGame($userId, $gameId);
                     $this->clientSession->publish($userId, ["MAKE GAME OK"]);
                     break;
-                case 'JOIN':
-                    $gameId = $args[2];
-                    echo "$userId tries to join game $gameId\n";
-                    if(!$this->gameHandler->isThereGameLike($gameId)) {
-                        return;
+                case 'LIST GAMES':
+                    $response = [];
+                    foreach($this->gameHandler->getGames() as $game) {
+                        $response[] = array('topic' => $game->getGameTopic(), 'running' => $game->isRunning());
                     }
-                    $this->gameHandler->getGame($gameId);
+                    $this->clientSession->publish($userId, array_merge(['GAMES'], $response));
+                    break;
                 default:
                     echo "Bad command of logged user\n";
             }
         };
     }
 
-    private function makeGame($ownerId) {
-        list($gameTopic, $gamePrivateTopic) = $this->gameHandler->createGame($ownerId);
+    private function makeGame($ownerId, $gameId) {
+        list($gameTopic, $gamePrivateTopic) = $this->gameHandler->createGame($ownerId, $gameId);
         echo "GameTopic is: $gameTopic, GamePrivateTopic is $gamePrivateTopic\n";
         $this->subscribe($gameTopic, $this->gameHandler->getGame($gameTopic)->handler);
         $this->subscribe($gamePrivateTopic, $this->gameHandler->getGame($gameTopic)->privateHandler);

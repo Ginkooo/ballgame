@@ -22,7 +22,7 @@ class Ball
     }
 
     public function push($pushArray) {
-        $unit = 2;
+        $unit = 6;
         foreach($pushArray as $direction => $bool) {
             if(!$bool)
                 continue;
