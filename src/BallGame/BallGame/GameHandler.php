@@ -16,8 +16,9 @@ class GameHandler
     public function createGame($ownerId, $gameId) {
         echo "CreateGame invoked\n";
         $gameTopic = $gameId;
-        $gamePrivateTopic = "prvgame1";
+        $gamePrivateTopic = uniqid();
         $this->games[$gameTopic] = new Game($gameTopic, $gamePrivateTopic, $ownerId, $this->clientSession);
+        print("Here i am after creating a game\n");
         return [$gameTopic, $gamePrivateTopic];
     }
 
@@ -31,5 +32,9 @@ class GameHandler
 
     public function setClientSession($session) {
         $this->clientSession = $session;
+    }
+
+    private function destroyGame($gameTopic) {
+        unset($this->games[$gameTopic]);
     }
 }

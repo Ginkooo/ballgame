@@ -4,6 +4,7 @@ namespace BallGame;
 
 require_once(__DIR__ . '/Ball.php');
 require_once(__DIR__ . '/Player.php');
+require_once(__DIR__ . '/Team.php');
 
 use React\EventLoop\Factory;
 
@@ -11,6 +12,7 @@ class Game
 {
     private $ball;
     private $running = false;
+    private $teams = [];
     private $players = [];
     private $ownerId;
     public $handler;
@@ -25,8 +27,10 @@ class Game
     public function __construct($gameTopic, $gamePrivateTopic, $ownerId, $clientSession)
     {
         echo "Game is constructed\n";
+        $this->teams[] = new Team('red');
         $this->ownerId = $ownerId;
-        $this->players[$ownerId] = new Player($ownerId);
+        $this->players[$ownerId] = new Player($ownerId, 0);
+        $this->teams[0]->addPlayer($this->players[$ownerId]);
         $this->gameTopic = $gameTopic;
         $this->gamePrivateTopic = $gamePrivateTopic;
         $this->clientSession = $clientSession;
@@ -48,7 +52,14 @@ class Game
                             echo "Playes tries to join as existing player\n";
                             return;
                     }
-                        $this->players[$userId] = new Player($userId);
+                        if (isset($args[2])) {
+                            $team = $args[2];
+                        }
+                        else {
+                            $team = 0;
+                        }
+                        $this->players[$userId] = new Player($userId, 0);
+                        $this->teams[$team]->addPlayer($this->players[$userId]);
                         $this->clientSession->publish($userId, ['JOIN OK']);
                         $this->clientSession->publish($this->gameTopic, ['USER JOINED', $userId]);
                         break;
@@ -73,6 +84,7 @@ class Game
                             $this->alreadyPushed = true;
                             $this->startTime = $this->getCurrentTime();
                         }
+
                         if (!isset($this->players[$userId])) {
                             echo "Unexisting user can't push\n";
                             return;
@@ -101,11 +113,10 @@ class Game
             switch($args[0]) {
                 case 'UPDATE':
                     echo "update recieved\n";
-                    foreach($this->players as $player) {
-                        $this->ball->push($player->getPushArray());
+                    foreach ($this->teams as $team) {
                         echo "Player of id ". $player->getId() ."\n";
-                        $this->ball->move($player->getPushArray());
-                        $this->clientSession->publish($this->gameTopic, $this->ball->getPosition());
+                        $team->moveBall();
+                        $this->clientSession->publish($this->gameTopic, array_merge($team->getBall()->getPosition(), $team->);
                         $this->ball->stop();
                         $this->checkForWin($this->ball->getPosition());
                     }
@@ -128,6 +139,7 @@ class Game
         $playTime = $winTime - $this->startTime;
         $pid = proc_get_status($this->updater)['pid'];
         $this->clientSession->publish($this->gameTopic, ['WIN', $playTime]);
+        $this->clientSession->publish($this->gamePrivateTopic, ['CLOSE']);
     }
 
     private function isNear($point1, $point2) {
@@ -166,7 +178,7 @@ class Game
 
     public function getPlayerNames() {
         foreach ($this->players as $player) {
-            $ret[] = $player->getId().($player->getId() == $this->ownerId ? " (owner)" : "");
+            $ret[] = $player->getId().($player->getId() == $this->ownerId ? " (owner)" : "")." Team ". $player->getTeam();
         }
         return $ret;
     }
