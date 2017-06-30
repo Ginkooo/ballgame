@@ -50,8 +50,8 @@ connection.onopen = function (sess, details) {
 
     window.gameevent = function gameevent(args) {
         console.log('Game event:', JSON.stringify(args));
-        if (args.length == 2 && !isNaN(args[0])) {
-            window.redraw(args[0], args[1]);
+        if (args.length == 3 && !isNaN(args[0])) {
+            window.redraw(args[0], args[1], args[2]);
             $('#ballPosition').html("["+args[0]+", "+args[1]+"]");
         }
         switch(args[0]) {
@@ -93,9 +93,9 @@ window.beginGame = function () {
     window.context = canvas.getContext("2d");
 }
 
-window.redraw = function(x, y) {
+window.redraw = function(x, y, team) {
     window.context.clearRect(0, 0, window.canvas.width, window.canvas.height);
-    window.moveBall(x, y);
+    window.moveBall(x, y, team);
     window.redrawTarget(window.target[0], window.target[1]);
 }
 
@@ -104,7 +104,7 @@ window.placeTarget = function (x, y) {
     console.log("Target is being placed!");
     window.context.beginPath();
     window.context.arc(x * window.scale, y * window.scale, window.ballRadius, 0, 2 * Math.PI);
-    window.context.fillStyle = 'red';
+    window.context.fillStyle = 'black';
     window.context.fill();
     window.context.stroke();
 }
@@ -113,16 +113,16 @@ window.redrawTarget = function(x, y) {
     console.log("redrawing target!");
     window.context.beginPath();
     window.context.arc(target[0] * window.scale, target[1] * window.scale, window.ballRadius, 0, 2 * Math.PI);
-    window.context.fillStyle = 'red';
+    window.context.fillStyle = 'black';
     window.context.fill();
     window.context.stroke();
 }
 
-window.moveBall = function(x, y) {
+window.moveBall = function(x, y, team) {
     console.log("Ball moved!");
     window.context.beginPath();
     window.context.arc(x * window.scale, y * window.scale, window.ballRadius, 0, 2 * Math.PI);
-    window.context.fillStyle = 'green';
+    window.context.fillStyle = team;
     window.context.fill();
     window.context.stroke();
 }

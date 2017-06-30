@@ -40,7 +40,7 @@ class Timer
                 exit();
         });*/
 
-        $loop->addPeriodicTimer(0.05, function() {
+        $loop->addPeriodicTimer(1, function() {
             $this->session->publish($this->gamePrivateTopic, ['UPDATE']);
         });
 

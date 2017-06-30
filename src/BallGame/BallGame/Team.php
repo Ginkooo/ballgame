@@ -18,6 +18,10 @@ class Team
         $this->players[$player->getId()] = $player;
     }
 
+    public function getName() {
+        return $this->name;
+    }
+
     public function getPlayers() {
         return $this->players;
     }

@@ -27,10 +27,10 @@ class Game
     public function __construct($gameTopic, $gamePrivateTopic, $ownerId, $clientSession)
     {
         echo "Game is constructed\n";
-        $this->teams[] = new Team('red');
+        $this->teams['red'] = new Team('red');
         $this->ownerId = $ownerId;
-        $this->players[$ownerId] = new Player($ownerId, 0);
-        $this->teams[0]->addPlayer($this->players[$ownerId]);
+        $this->players[$ownerId] = new Player($ownerId, 'red');
+        $this->teams['red']->addPlayer($this->players[$ownerId]);
         $this->gameTopic = $gameTopic;
         $this->gamePrivateTopic = $gamePrivateTopic;
         $this->clientSession = $clientSession;
@@ -56,9 +56,9 @@ class Game
                             $team = $args[2];
                         }
                         else {
-                            $team = 0;
+                            $team = 'red';
                         }
-                        $this->players[$userId] = new Player($userId, 0);
+                        $this->players[$userId] = new Player($userId, $team);
                         $this->teams[$team]->addPlayer($this->players[$userId]);
                         $this->clientSession->publish($userId, ['JOIN OK']);
                         $this->clientSession->publish($this->gameTopic, ['USER JOINED', $userId]);
@@ -92,6 +92,7 @@ class Game
                         $direction = $args[2];
                         echo "Player pushed $direction\n";
                         $this->players[$userId]->push($direction);
+                        var_dump($this->teams['red']->getPlayers[$userId]->getPushArray());
                         $this->clientSession->publish($userId, ['PUSH OK']);
                         break;
                     case 'RELEASE':
@@ -114,11 +115,10 @@ class Game
                 case 'UPDATE':
                     echo "update recieved\n";
                     foreach ($this->teams as $team) {
-                        echo "Player of id ". $player->getId() ."\n";
                         $team->moveBall();
-                        $this->clientSession->publish($this->gameTopic, array_merge($team->getBall()->getPosition(), $team->);
-                        $this->ball->stop();
-                        $this->checkForWin($this->ball->getPosition());
+                        $this->clientSession->publish($this->gameTopic, array_merge($team->getBall()->getPosition(), [$team->getName()]));
+                        $team->getBall()->stop();
+                        $this->checkForWin($team->getBall()->getPosition());
                     }
             }
         };
@@ -177,8 +177,9 @@ class Game
     }
 
     public function getPlayerNames() {
-        foreach ($this->players as $player) {
-            $ret[] = $player->getId().($player->getId() == $this->ownerId ? " (owner)" : "")." Team ". $player->getTeam();
+        foreach ($this->teams as $team) {
+            foreach($team->getPlayers() as $player)
+                $ret[] = $player->getId().($player->getId() == $this->ownerId ? " (owner)" : "")." Team ". $team->getName();
         }
         return $ret;
     }
