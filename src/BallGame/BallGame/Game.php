@@ -34,7 +34,6 @@ class Game
         $this->handler = function ($args) {
             $command = $args[0];
             $userId = $args[1];
-            echo "Game, of public topic $this->gameTopic recieved command $command from user $userId\n";
             switch ($command) {
                 case 'LIST PLAYERS':
                     echo "listing players\n";
