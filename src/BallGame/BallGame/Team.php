@@ -41,7 +41,9 @@ class Team
     }
 
     public function moveBall() {
+        echo "$this->name team is trying to move ball\n";
         foreach($this->players as $player) {
+            echo "$this->name team, player ". $player->getId() ." is moving the ball\n";
             $this->ball->move($player->getPushArray());
         }
     }

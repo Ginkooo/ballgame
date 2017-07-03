@@ -44,6 +44,14 @@ class Game
                     echo "listing players\n";
                     $this->clientSession->publish($userId, array_merge(['PLAYERS'], $this->getPlayerNames()));
                     break;
+                case 'LIST TEAMS':
+                    echo "Listing teams\n";
+                    $ret = [];
+                    foreach($this->teams as $team) {
+                        $ret[] = $team->getName() . " ( ". count($team->getPlayers()) . ")";
+                    }
+                    $this->clientSession->publish($userId, array_merge(['TEAMS'], $ret));
+                    break;
             }
             if(!$this->running) {
                 switch($command) {
@@ -54,6 +62,9 @@ class Game
                     }
                         if (isset($args[2])) {
                             $team = $args[2];
+                            if (!isset($this->teams[$team]))
+                                $this->teams[$team] = new Team($team);
+                            echo "Making $team team\n";
                         }
                         else {
                             $team = 'red';
@@ -92,7 +103,7 @@ class Game
                         $direction = $args[2];
                         echo "Player pushed $direction\n";
                         $this->players[$userId]->push($direction);
-                        var_dump($this->teams['red']->getPlayers[$userId]->getPushArray());
+                        echo "Are objects equal: ". ($this->players[$userId] === $this->teams['red']->getPlayer($userId) ? "TRUE\n" : "FALSE\n");
                         $this->clientSession->publish($userId, ['PUSH OK']);
                         break;
                     case 'RELEASE':
@@ -114,12 +125,18 @@ class Game
             switch($args[0]) {
                 case 'UPDATE':
                     echo "update recieved\n";
+                    $gameState = [];
                     foreach ($this->teams as $team) {
+                        $team->pushBall();
                         $team->moveBall();
-                        $this->clientSession->publish($this->gameTopic, array_merge($team->getBall()->getPosition(), [$team->getName()]));
+                        $gameState[] = $team->getName();
+                        $ballPos = $team->getBall()->getPosition();
+                        $gameState[] = $ballPos[0];
+                        $gameState[] = $ballPos[1];
                         $team->getBall()->stop();
-                        $this->checkForWin($team->getBall()->getPosition());
+                        $this->checkForWin($team->getBall()->getPosition(), $team->getName());
                     }
+                    $this->clientSession->publish($this->gameTopic, array_merge(['BALL POSITIONS'], $gameState));
             }
         };
     }
@@ -129,7 +146,7 @@ class Game
         return (float)$usec + (float)$sec;
     }
 
-    private function checkForWin($ballPos) {
+    private function checkForWin($ballPos, $teamName) {
         if(!$this->isNear($ballPos, $this->target)) {
             echo "DIDNT WIN\n";
             return;
@@ -138,7 +155,7 @@ class Game
         $winTime = $this->getCurrentTime();
         $playTime = $winTime - $this->startTime;
         $pid = proc_get_status($this->updater)['pid'];
-        $this->clientSession->publish($this->gameTopic, ['WIN', $playTime]);
+        $this->clientSession->publish($this->gameTopic, ['WIN', $playTime, $teamName]);
         $this->clientSession->publish($this->gamePrivateTopic, ['CLOSE']);
     }
 

@@ -34,13 +34,7 @@ class Timer
             });
         });
 
-        /*$stdin->on('data', function ($data, $stdin) {
-            $data = trim($data);
-            if($data == 'close')
-                exit();
-        });*/
-
-        $loop->addPeriodicTimer(1, function() {
+        $loop->addPeriodicTimer(0.05, function() {
             $this->session->publish($this->gamePrivateTopic, ['UPDATE']);
         });
 

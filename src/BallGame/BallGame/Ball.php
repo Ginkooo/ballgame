@@ -24,6 +24,7 @@ class Ball
     public function push($pushArray) {
         $unit = 6;
         foreach($pushArray as $direction => $bool) {
+            echo "Ball is being moved left\n";
             if(!$bool)
                 continue;
             switch($direction) {
@@ -41,5 +42,6 @@ class Ball
                     break;
             }
         }
+        var_dump($this->position);
     }
 }

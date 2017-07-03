@@ -50,11 +50,7 @@ connection.onopen = function (sess, details) {
 
     window.gameevent = function gameevent(args) {
         console.log('Game event:', JSON.stringify(args));
-        if (args.length == 3 && !isNaN(args[0])) {
-            window.redraw(args[0], args[1], args[2]);
-            $('#ballPosition').html("["+args[0]+", "+args[1]+"]");
-        }
-        switch(args[0]) {
+        switch (args[0]) {
             case 'START OK':
                 console.log("Trying to start a game");
                 window.beginGame();
@@ -67,8 +63,17 @@ connection.onopen = function (sess, details) {
             case 'WIN':
                 console.log('WON THE GAME!');
                 $('#gameWindow').remove();
-                $('#winHeader').html("WON IN " + args[1] + " SECONDS!!");
+                $('#winHeader').html(args[2] + " WON IN " + args[1] + " SECONDS!!");
                 window.connection.close();
+                break;
+            case 'BALL POSITIONS':
+                var positions = {};
+                for (var i = 1; i < args.length; i += 3) {
+                    console.log("Setting " + args[i] + " to " + args[i + 1] + ", " + args[i + 2]);
+                    positions[args[i]] = [args[i + 1], args[i + 2]];
+                }
+                window.redraw(positions);
+                break;
         }
     }
 
@@ -93,9 +98,10 @@ window.beginGame = function () {
     window.context = canvas.getContext("2d");
 }
 
-window.redraw = function(x, y, team) {
+window.redraw = function(ballPositions) {
+    console.log(JSON.stringify(ballPositions));
     window.context.clearRect(0, 0, window.canvas.width, window.canvas.height);
-    window.moveBall(x, y, team);
+    window.moveBalls(ballPositions);
     window.redrawTarget(window.target[0], window.target[1]);
 }
 
@@ -118,13 +124,15 @@ window.redrawTarget = function(x, y) {
     window.context.stroke();
 }
 
-window.moveBall = function(x, y, team) {
-    console.log("Ball moved!");
-    window.context.beginPath();
-    window.context.arc(x * window.scale, y * window.scale, window.ballRadius, 0, 2 * Math.PI);
-    window.context.fillStyle = team;
-    window.context.fill();
-    window.context.stroke();
+window.moveBalls = function(ballPositions) {
+    console.log("Ball " + team + " moved!");
+    $.each(ballPositions, function (key, value) {
+        window.context.beginPath();
+        window.context.arc(value[0] * window.scale, value[1] * window.scale, window.ballRadius, 0, 2 * Math.PI);
+        window.context.fillStyle = key;
+        window.context.fill();
+        window.context.stroke();
+    })
 }
 
 $('#loginButton').click(function () {
@@ -216,12 +224,10 @@ $('#joinGameButton').click(function() {
     window.gameTopic = $('#gameTopicJoin').val();
     console.log('JOINing game:', window.gameTopic);
     window.session.subscribe(window.gameTopic, window.gameevent);
-    window.session.publish(window.gameTopic, ['JOIN', window.userTopic]);
+    window.session.publish(window.gameTopic, ['JOIN', window.userTopic, $('#team').val() === '' ? 'red' : $('#team').val()]);
 });
 
 $('#listPlayersButton').click(function () {
     console.log("Sending request for player list");
     window.session.publish(window.gameTopic, ['LIST PLAYERS', window.userTopic]);
 });
-
-
