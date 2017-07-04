@@ -6,12 +6,6 @@ class Ball
 {
     private $position = [500, 500];
     private $speed = [0, 0];
-    private $previousPushArray = [
-        'up' => false,
-        'down' => false,
-        'left' => false,
-        'right' => false,
-    ];
 
     public function move() {
         for ($i = 0; $i < 2; $i++) {
@@ -29,13 +23,10 @@ class Ball
 
     public function push($pushArray) {
         $unit = 6;
-        $this->processPushArray($pushArray, $this->previousPushArray);
-        $this->previousPushArray = $pushArray;
         foreach($pushArray as $direction => $bool) {
-            echo "Ball is being moved left\n";
-            if(!$bool)
+            if (!$bool)
                 continue;
-            switch($direction) {
+            switch ($direction) {
                 case 'up':
                     $this->speed[1] -= $unit;
                     break;
@@ -50,8 +41,5 @@ class Ball
                     break;
             }
         }
-    }
-
-    private function processPushArray(&$pushArray, &$previousPushArray) {
     }
 }

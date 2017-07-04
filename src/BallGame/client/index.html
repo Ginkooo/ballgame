@@ -3,52 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <title>Pulling Simulator</title>
+    <link rel="stylesheet" type="text/css" href="styles.css" />
 </head>
 <body>
-<h4 id="userTopicHeader"></h4>
-<h4 id="gameTopicHeader"></h4>
-<h5 id="ballPosition"></h5>
-<div id="loginDiv">
-    <label for="userTopic">Type your user topic:</label>
-    <input type="text" id="userTopic" />
-    <button id="loginButton">Login</button>
+<div id="statusBar">
+    <p class="statusItem">User:<span id="userTopicHeader"></span></p>
+    <p class="statusItem">Game:<span id="gameTopicHeader"></span></p>
 </div>
 
-<div id="makeGameDiv">
-    <label for="gameTopic">Type desired game topic:</label>
-    <input type="text" id="gameTopic" />
-    <input type="text" id="teamNames" />
-    <button id="makeGameButton">Make game</button>
-</div>
+<div id="left">
+    <div id="loginDiv">
+        <label for="userTopic">Type your user topic:</label>
+        <input type="text" id="userTopic" />
+        <button id="loginButton">Login</button>
+    </div>
 
-<button id="startGameButton" style="display: none;">Start game</button>
+    <div id="makeGameDiv">
+        <label for="gameTopic">Type desired game topic:</label>
+        <input type="text" id="gameTopic" />
+        <input type="text" id="teamNames" />
+        <button id="makeGameButton">Make game</button>
+    </div>
 
-<div id="joinGameDiv">
-    <label for="gameTopicJoin">Type game topic to join</label>
-    <input type="text" id="gameTopicJoin" />
-    <label for="team">Team:</label>
-    <input type="text" id="team" />
-    <button id="joinGameButton">Join</button>
-</div>
+    <button id="startGameButton" style="display: none;">Start game</button>
 
-<div id="listGamesDiv">
-    <button id="listGamesButton">List games</button>
-    <ul id="gameList">
-    </ul>
-</div>
+    <div id="joinGameDiv">
+        <label for="gameTopicJoin">Type game topic to join</label>
+        <input type="text" id="gameTopicJoin" />
+        <label for="team">Team:</label>
+        <input type="text" id="team" />
+        <button id="joinGameButton">Join</button>
+    </div>
 
-<div id="listPlayersDiv">
-    <button id="listPlayersButton">List players</button>
-    <ul id="playerList"></ul>
-</div>
+    <div id="listGamesDiv">
+        <button id="listGamesButton">List games</button>
+        <ul id="gameList">
+        </ul>
+    </div>
 
-<div id="listTeamsDiv">
-    <button id="listTeamsButton">List teams</button>
-    <ul id="teamList"></ul>
-</div>
+    <div id="listPlayersDiv">
+        <button id="listPlayersButton">List players</button>
+        <ul id="playerList"></ul>
+    </div>
+
+    <div id="listTeamsDiv">
+        <button id="listTeamsButton">List teams</button>
+        <ul id="teamList"></ul>
+    </div>
+
 <h1 id="winHeader"></h1>
-
+<div id="right">
 <canvas id="gameWindow" width="400" height="400"></canvas>
+</div>
 
 <script
   src="https://code.jquery.com/jquery-3.2.1.min.js"
