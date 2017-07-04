@@ -3,31 +3,33 @@ var connection = new autobahn.Connection({
     realm: 'global'
 });
 
-window.connection = connection;
+globals = {};
 
-window.gameRunning = false;
-window.scale = 400/1000;
-window.ballRadius = 5;
+globals.connection = connection;
+
+globals.gameRunning = false;
+globals.scale = 400/1000;
+globals.ballRadius = 5;
 
 connection.onopen = function (sess, details) {
 
     console.log("Opened connection");
 
-    window.onevent = function onevent(args) {
+    globals.onevent = function onevent(args) {
         console.log("Global Event: ", JSON.stringify(args));
     }
 
-    window.userevent = function userevent(args) {
+    globals.userevent = function userevent(args) {
         console.log("User Event: ", JSON.stringify(args));
         switch(args[0]) {
             case 'LOG OK':
-                window.userTopic = $('#userTopic').val();
+                globals.userTopic = $('#userTopic').val();
                 console.log("Setting userTopic header");
-                $('#userTopicHeader').html('Logged as: ' + window.userTopic);
+                $('#userTopicHeader').html('Logged as: ' +globals.userTopic);
                 break;
             case 'MAKE GAME OK':
-                window.gameTopic = $('#gameTopic').val();
-                $('#gameTopicHeader').html('Game: ' + window.gameTopic + ' (owner)');
+                globals.gameTopic = $('#gameTopic').val();
+                $('#gameTopicHeader').html('Game: ' +globals.gameTopic + ' (owner)');
                 $('#startGameButton').css('display', '');
                 break;
             case 'GAMES':
@@ -38,196 +40,216 @@ connection.onopen = function (sess, details) {
                 }
                 break;
             case 'JOIN OK':
-                $('#gameTopicHeader').html('Game: ' + window.gameTopic);
+                $('#gameTopicHeader').html('Game: ' +globals.gameTopic);
                 break;
             case 'PLAYERS':
                 $('#playerList').html('');
                 for(var i=1; i<args.length; i++) {
                     $('#playerList').append('<li>' + args[i] + '</li>');
                 }
+                break;
+            case 'TEAMS':
+                console.log('Listing teams');
+                $('#teamList').html('');
+                for (var i=1; i<args.length; i++) {
+                    $('#teamList').append('<li>' + args[i] + '</li>');
+                }
         }
     }
 
-    window.gameevent = function gameevent(args) {
+    globals.gameevent = function gameevent(args) {
         console.log('Game event:', JSON.stringify(args));
         switch (args[0]) {
             case 'START OK':
                 console.log("Trying to start a game");
-                window.beginGame();
+                globals.beginGame();
                 console.log('ima here');
                 break;
             case 'TARGET':
                 console.log("Trying to place a target");
-                window.placeTarget(args[1], args[2]);
+                globals.placeTarget(args[1], args[2]);
                 break;
             case 'WIN':
                 console.log('WON THE GAME!');
                 $('#gameWindow').remove();
                 $('#winHeader').html(args[2] + " WON IN " + args[1] + " SECONDS!!");
-                window.connection.close();
+                globals.connection.close();
                 break;
             case 'BALL POSITIONS':
+                //['BALL POSITION, 'red', '1', '1', 'blue', '1', '1']
                 var positions = {};
                 for (var i = 1; i < args.length; i += 3) {
                     console.log("Setting " + args[i] + " to " + args[i + 1] + ", " + args[i + 2]);
                     positions[args[i]] = [args[i + 1], args[i + 2]];
                 }
-                window.redraw(positions);
+                globals.redraw(positions);
                 break;
         }
     }
 
-    window.prvgameevent = function prvgameevent(args) {
+    globals.prvgameevent = function prvgameevent(args) {
         console.log("Private game Event: ", JSON.stringify(args));
     }
 
-    window.userprvevent = function userprvevent(args) {
+    globals.userprvevent = function userprvevent(args) {
         console.log("Private user event ", JSON.stringify(args))
     }
 
-    sess.subscribe('global', window.onevent);
-    window.session = sess;
+    sess.subscribe('global',globals.onevent);
+    globals.session = sess;
 };
 
 connection.open();
 
-window.beginGame = function () {
-    window.gameRunning = true;
+globals.getRequriredTeamNames = function () {
+    var teamNameText = $('#teamNames');
+    var teams = teamNameText.val().split(',');
+    console.log(JSON.stringify(teams));
+    return teams;
+}
+
+globals.beginGame = function () {
+    globals.gameRunning = true;
     console.log("Beginning a game");
-    window.canvas = document.getElementById("gameWindow");
-    window.context = canvas.getContext("2d");
+    globals.canvas = document.getElementById("gameWindow");
+    globals.context = globals.canvas.getContext("2d");
 }
 
-window.redraw = function(ballPositions) {
+globals.redraw = function(ballPositions) {
     console.log(JSON.stringify(ballPositions));
-    window.context.clearRect(0, 0, window.canvas.width, window.canvas.height);
-    window.moveBalls(ballPositions);
-    window.redrawTarget(window.target[0], window.target[1]);
+    globals.context.clearRect(0, 0,globals.canvas.width,globals.canvas.height);
+    globals.moveBalls(ballPositions);
+    globals.redrawTarget(globals.target[0],globals.target[1]);
 }
 
-window.placeTarget = function (x, y) {
-    window.target = [x, y];
-    console.log("Target is being placed!");
-    window.context.beginPath();
-    window.context.arc(x * window.scale, y * window.scale, window.ballRadius, 0, 2 * Math.PI);
-    window.context.fillStyle = 'black';
-    window.context.fill();
-    window.context.stroke();
+globals.placeTarget = function (x, y) {
+    globals.target = [x, y];
+    console.log("Target is being placed in ", x, y);
+    globals.context.beginPath();
+    globals.context.arc(x *globals.scale, y *globals.scale,globals.ballRadius, 0, 2 * Math.PI);
+    globals.context.fillStyle = 'black';
+    globals.context.fill();
+    globals.context.stroke();
 }
 
-window.redrawTarget = function(x, y) {
+globals.redrawTarget = function(x, y) {
     console.log("redrawing target!");
-    window.context.beginPath();
-    window.context.arc(target[0] * window.scale, target[1] * window.scale, window.ballRadius, 0, 2 * Math.PI);
-    window.context.fillStyle = 'black';
-    window.context.fill();
-    window.context.stroke();
+    globals.context.beginPath();
+    globals.context.arc(x *globals.scale, y *globals.scale,globals.ballRadius, 0, 2 * Math.PI);
+    globals.context.fillStyle = 'black';
+    globals.context.fill();
+    globals.context.stroke();
 }
 
-window.moveBalls = function(ballPositions) {
+globals.moveBalls = function(ballPositions) {
     console.log("Ball " + team + " moved!");
     $.each(ballPositions, function (key, value) {
-        window.context.beginPath();
-        window.context.arc(value[0] * window.scale, value[1] * window.scale, window.ballRadius, 0, 2 * Math.PI);
-        window.context.fillStyle = key;
-        window.context.fill();
-        window.context.stroke();
+        globals.context.beginPath();
+        globals.context.arc(value[0] *globals.scale, value[1] *globals.scale,globals.ballRadius, 0, 2 * Math.PI);
+        globals.context.fillStyle = key;
+        globals.context.fill();
+        globals.context.stroke();
     })
 }
 
 $('#loginButton').click(function () {
     console.log('Logging as', $('#userTopic').val())
-    window.session.subscribe($('#userTopic').val(), window.userevent);
-    window.session.publish('global', ['LOG', $('#userTopic').val()]);
+    globals.session.subscribe($('#userTopic').val(),globals.userevent);
+    globals.session.publish('global', ['LOG', $('#userTopic').val()]);
 });
 
 $('#makeGameButton').click(function() {
     console.log("Making game of topic", $('#gameTopic').val());
-    window.session.subscribe($('#gameTopic').val(), window.gameevent)
-    window.session.publish('global', ['MAKE GAME', window.userTopic, $('#gameTopic').val()]);
+    globals.session.subscribe($('#gameTopic').val(),globals.gameevent)
+    globals.session.publish('global', ['MAKE GAME',globals.userTopic, $('#gameTopic').val()].concat(globals.getRequriredTeamNames()));
 });
 
 $('#startGameButton').click(function () {
     console.log("Starting game");
-    window.session.publish(window.gameTopic, ['START', window.userTopic]);
+    globals.session.publish(globals.gameTopic, ['START',globals.userTopic]);
+});
+
+$('#listTeamsButton').click(function() {
+    console.log('Sending LIST TEAMS');
+    globals.session.publish(globals.gameTopic, ['LIST TEAMS', globals.userTopic]);
 });
 
 $(document).keydown(function(event) {
-    if(!window.gameRunning)
+    if(!globals.gameRunning)
         return;
     switch(event.which) {
         case 65: //left
-            if(!window.left)
-                window.keyPressed('left');
-            window.left = true;
+            if(!globals.left)
+                globals.keyPressed('left');
+            globals.left = true;
             break;
         case 87: //up
-            if(!window.up)
-                window.keyPressed('up');
-            window.up = true;
+            if(!globals.up)
+                globals.keyPressed('up');
+            globals.up = true;
             break;
         case 68: //right
-            if(!window.right)
-                window.keyPressed('right');
-            window.right = true;
+            if(!globals.right)
+                globals.keyPressed('right');
+            globals.right = true;
             break;
         case 83: //down
-            if(!window.down)
-                window.keyPressed('down');
-            window.down = true;
+            if(!globals.down)
+                globals.keyPressed('down');
+            globals.down = true;
             break;
     }
 });
 
 $(document).keyup(function(event) {
-    if(!window.gameRunning)
+    if(!globals.gameRunning)
         return;
     switch(event.which) {
         case 65: //left
-            if(window.left)
-                window.keyReleased('left');
-            window.left = false;
+            if(globals.left)
+                globals.keyReleased('left');
+            globals.left = false;
             break;
         case 87: //up
-            if(window.up)
-                window.keyReleased('up');
-            window.up = false;
+            if(globals.up)
+                globals.keyReleased('up');
+            globals.up = false;
             break;
         case 68: //right
-            if(window.right)
-                window.keyReleased('right');
-            window.right = false;
+            if(globals.right)
+                globals.keyReleased('right');
+            globals.right = false;
             break;
         case 83: //down
-            if(window.down)
-                window.keyReleased('down');
-            window.down = false;
+            if(globals.down)
+                globals.keyReleased('down');
+            globals.down = false;
             break;
     }
 });
 
-window.keyPressed = function(direction) {
+globals.keyPressed = function(direction) {
     console.log("PUSHING", direction);
-    window.session.publish(window.gameTopic, ['PUSH', window.userTopic, direction]);
+    globals.session.publish(globals.gameTopic, ['PUSH',globals.userTopic, direction]);
 }
 
-window.keyReleased = function(direction) {
+globals.keyReleased = function(direction) {
     console.log("RELEASING", direction);
-    window.session.publish(window.gameTopic, ['RELEASE', window.userTopic, direction]);
+    globals.session.publish(globals.gameTopic, ['RELEASE',globals.userTopic, direction]);
 }
 
 $('#listGamesButton').click(function() {
-   window.session.publish('global', ['LIST GAMES', window.userTopic]);
+   globals.session.publish('global', ['LIST GAMES',globals.userTopic]);
 });
 
 $('#joinGameButton').click(function() {
-    window.gameTopic = $('#gameTopicJoin').val();
-    console.log('JOINing game:', window.gameTopic);
-    window.session.subscribe(window.gameTopic, window.gameevent);
-    window.session.publish(window.gameTopic, ['JOIN', window.userTopic, $('#team').val() === '' ? 'red' : $('#team').val()]);
+    globals.gameTopic = $('#gameTopicJoin').val();
+    console.log('JOINing game:',globals.gameTopic);
+    globals.session.subscribe(globals.gameTopic,globals.gameevent);
+    globals.session.publish(globals.gameTopic, ['JOIN',globals.userTopic, $('#team').val() === '' ? 'red' : $('#team').val()]);
 });
 
 $('#listPlayersButton').click(function () {
     console.log("Sending request for player list");
-    window.session.publish(window.gameTopic, ['LIST PLAYERS', window.userTopic]);
+    globals.session.publish(globals.gameTopic, ['LIST PLAYERS',globals.userTopic]);
 });

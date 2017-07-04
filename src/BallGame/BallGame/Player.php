@@ -29,9 +29,6 @@ class Player
 
     public function push($direction) {
         echo "Player $this->id is pushing $direction now\n";
-        foreach($this->pushArray as $key => $value) {
-            $this->pushArray[$key] = false;
-        }
         $this->pushArray[$direction] = true;
     }
 

@@ -13,17 +13,17 @@ class GameHandler
         return $this->games;
     }
 
-    public function createGame($ownerId, $gameId) {
+    public function createGame($ownerId, $gameId, $teams) {
         echo "CreateGame invoked\n";
         $gameTopic = $gameId;
         $gamePrivateTopic = uniqid();
-        $this->games[$gameTopic] = new Game($gameTopic, $gamePrivateTopic, $ownerId, $this->clientSession);
+        $this->games[$gameTopic] = new Game($gameTopic, $gamePrivateTopic, $ownerId, $this->clientSession, $teams);
         print("Here i am after creating a game\n");
         return [$gameTopic, $gamePrivateTopic];
     }
 
     public function isThereGameLike($gameId) {
-        return in_array($gameId, $this->games);
+        return isset($this->games[$gameId]);
     }
 
     public function getGame($id) {

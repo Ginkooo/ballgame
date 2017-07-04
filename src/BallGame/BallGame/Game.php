@@ -5,8 +5,10 @@ namespace BallGame;
 require_once(__DIR__ . '/Ball.php');
 require_once(__DIR__ . '/Player.php');
 require_once(__DIR__ . '/Team.php');
+require_once(__DIR__ . '/Validator.php');
 
 use React\EventLoop\Factory;
+use Thruway\ClientSession;
 
 class Game
 {
@@ -17,6 +19,9 @@ class Game
     private $ownerId;
     public $handler;
     public $privateHandler;
+    /**
+     * @var ClientSession
+     */
     private $clientSession;
     private $gameTopic;
     private $gamePrivateTopic;
@@ -24,13 +29,16 @@ class Game
     private $target;
     private $startTime;
 
-    public function __construct($gameTopic, $gamePrivateTopic, $ownerId, $clientSession)
+    public function __construct($gameTopic, $gamePrivateTopic, $ownerId, ClientSession $clientSession, Array $teams)
     {
         echo "Game is constructed\n";
-        $this->teams['red'] = new Team('red');
+        foreach ($teams as $team) {
+            $this->teams[$team] = new Team($team);
+        }
+        reset($this->teams);
+        $this->players[$ownerId] = new Player($ownerId, $this->teams[key($this->teams)]->getName());
+        $this->teams[key($this->teams)]->addPlayer($this->players[$ownerId]);
         $this->ownerId = $ownerId;
-        $this->players[$ownerId] = new Player($ownerId, 'red');
-        $this->teams['red']->addPlayer($this->players[$ownerId]);
         $this->gameTopic = $gameTopic;
         $this->gamePrivateTopic = $gamePrivateTopic;
         $this->clientSession = $clientSession;
@@ -38,6 +46,8 @@ class Game
         $this->handler = function ($args) {
             $command = $args[0];
             $userId = $args[1];
+            if (!Validator::validateTopic($userId))
+                return;
             echo "Game, of public topic $this->gameTopic recieved command $command from user $userId\n";
             switch ($command) {
                 case 'LIST PLAYERS':
@@ -48,7 +58,7 @@ class Game
                     echo "Listing teams\n";
                     $ret = [];
                     foreach($this->teams as $team) {
-                        $ret[] = $team->getName() . " ( ". count($team->getPlayers()) . ")";
+                        $ret[] = $team->getName() . " (". count($team->getPlayers()) . ")";
                     }
                     $this->clientSession->publish($userId, array_merge(['TEAMS'], $ret));
                     break;
@@ -60,21 +70,18 @@ class Game
                             echo "Playes tries to join as existing player\n";
                             return;
                     }
-                        if (isset($args[2])) {
-                            $team = $args[2];
-                            if (!isset($this->teams[$team]))
-                                $this->teams[$team] = new Team($team);
-                            echo "Making $team team\n";
-                        }
-                        else {
-                            $team = 'red';
-                        }
+                        if (!isset($args[2]))
+                            return;
+                        $team = $args[2];
+                        if (!isset($this->teams[$team]))
+                            echo "Can't join unexisting team\n";
                         $this->players[$userId] = new Player($userId, $team);
                         $this->teams[$team]->addPlayer($this->players[$userId]);
                         $this->clientSession->publish($userId, ['JOIN OK']);
                         $this->clientSession->publish($this->gameTopic, ['USER JOINED', $userId]);
                         break;
                     case 'START':
+                        $this->removeEmptyTeams();
                         if($userId === $this->ownerId) {
                             $this->running = true;
                             $this->startUpdatingWatcher();
@@ -127,6 +134,9 @@ class Game
                     echo "update recieved\n";
                     $gameState = [];
                     foreach ($this->teams as $team) {
+                        /**
+                         * @var Team $team
+                         */
                         $team->pushBall();
                         $team->moveBall();
                         $gameState[] = $team->getName();
@@ -134,11 +144,27 @@ class Game
                         $gameState[] = $ballPos[0];
                         $gameState[] = $ballPos[1];
                         $team->getBall()->stop();
-                        $this->checkForWin($team->getBall()->getPosition(), $team->getName());
+                        // Check for win and end the game if needed, sending WIN response to gamemembers
+                        $won = $this->checkForWin($team->getBall()->getPosition(), $team->getName());
+                        if ($won) {
+                            $winTime = $this->getCurrentTime();
+                            $playTime = $winTime - $this->startTime;
+                            $this->clientSession->publish($this->gameTopic, ['WIN', $playTime, $team->getName()]);
+                            $this->clientSession->publish($this->gamePrivateTopic, ['CLOSE']);
+                            return;
+                        }
                     }
                     $this->clientSession->publish($this->gameTopic, array_merge(['BALL POSITIONS'], $gameState));
             }
         };
+    }
+
+    private function removeEmptyTeams() {
+        foreach($this->teams as $id => $team) {
+            if (!count($team->getPlayers())) {
+                unset($this->teams[$id]);
+            }
+        }
     }
 
     private function getCurrentTime() {
@@ -149,18 +175,14 @@ class Game
     private function checkForWin($ballPos, $teamName) {
         if(!$this->isNear($ballPos, $this->target)) {
             echo "DIDNT WIN\n";
-            return;
+            return false;
         }
         echo "WIN\n";
-        $winTime = $this->getCurrentTime();
-        $playTime = $winTime - $this->startTime;
-        $pid = proc_get_status($this->updater)['pid'];
-        $this->clientSession->publish($this->gameTopic, ['WIN', $playTime, $teamName]);
-        $this->clientSession->publish($this->gamePrivateTopic, ['CLOSE']);
+        return true;
     }
 
     private function isNear($point1, $point2) {
-        echo "POINT1 [$point1[0], $point1[1]] POINT2 [$point2[0], $point2[1]\n";
+        echo "POINT1 [$point1[0], $point1[1]] POINT2 [$point2[0], $point2[1]]\n";
         $epsilon = 3;
         if (abs($point1[0] - $point2[0]) <= $epsilon && abs($point1[1] - $point2[1]) <= $epsilon)
             return true;

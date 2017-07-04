@@ -1,6 +1,7 @@
 <?php
 namespace BallGame;
 
+require_once(__DIR__ . '/Validator.php');
 
 class EventHandler
 {
@@ -17,6 +18,9 @@ class EventHandler
             $len = count($args);
             $command = $args[0];
             $userId = isset($args[1]) ? $args[1] : null;
+            if (!Validator::validateTopic($userId)) {
+                return;
+            }
             if (!$userId) {
                 echo "Invalid user id\n";
                 return;
@@ -36,11 +40,24 @@ class EventHandler
             switch($command) {
                 case 'MAKE GAME':
                     $gameId = $args[2];
+                    if(!Validator::validateTopic($gameId))
+                        return;
+                    if (count($args) < 4) {
+                        return;
+                    }
+                    $teams = array_slice($args, 3);
+                    if (!$teams)
+                        return;
+                    foreach ($teams as $team) {
+                        if (!Validator::validateTeamName($team)) {
+                            return;
+                        }
+                    }
                     echo "Trying to make a game $gameId...";
                     if($this->gameHandler->isThereGameLike($gameId)) {
                         return;
                     }
-                    $response = $this->makeGame($userId, $gameId);
+                    $this->makeGame($userId, $gameId, $teams);
                     $this->clientSession->publish($userId, ["MAKE GAME OK"]);
                     break;
                 case 'LIST GAMES':
@@ -56,12 +73,13 @@ class EventHandler
         };
     }
 
-    private function makeGame($ownerId, $gameId) {
-        list($gameTopic, $gamePrivateTopic) = $this->gameHandler->createGame($ownerId, $gameId);
+    private function makeGame($ownerId, $gameId, $teams) {
+        list($gameTopic, $gamePrivateTopic) = $this->gameHandler->createGame($ownerId, $gameId, $teams);
         echo "GameTopic is: $gameTopic, GamePrivateTopic is $gamePrivateTopic\n";
+        if (!Validator::validateTopic($gameTopic))
+            return;
         $this->subscribe($gameTopic, $this->gameHandler->getGame($gameTopic)->handler);
         $this->subscribe($gamePrivateTopic, $this->gameHandler->getGame($gameTopic)->privateHandler);
-        return $gameTopic;
     }
 
     public function setClientSession($session) {
