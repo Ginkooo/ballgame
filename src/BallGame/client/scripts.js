@@ -54,6 +54,11 @@ connection.onopen = function (sess, details) {
                 for (var i=1; i<args.length; i++) {
                     $('#teamList').append('<li>' + args[i] + '</li>');
                 }
+                break;
+            case 'CONNECT GAME OK':
+                console.log("Successfully connected to a game");
+                $('#gameTopicHeader').html(globals.connectingGameTopic)
+                globals.gameTopic = globals.connectingGameTopic;
         }
     }
 
@@ -174,6 +179,12 @@ $('#listTeamsButton').click(function() {
     globals.session.publish(globals.gameTopic, ['LIST TEAMS', globals.userTopic]);
 });
 
+$('#connectGameButton').click(function() {
+    console.log("Connecting a game\n");
+    globals.connectingGameTopic = $('#gameTopicConnect').val();
+    globals.session.publish(globals.connectingGameTopic, ['CONNECT GAME', globals.userTopic]);
+});
+
 $(document).keydown(function(event) {
     if(!globals.gameRunning)
         return;
@@ -242,9 +253,8 @@ $('#listGamesButton').click(function() {
    globals.session.publish('global', ['LIST GAMES',globals.userTopic]);
 });
 
-$('#joinGameButton').click(function() {
-    globals.gameTopic = $('#gameTopicJoin').val();
-    console.log('JOINing game:',globals.gameTopic);
+$('#joinTeamButton').click(function() {
+    console.log('JOINing team:',$('#team').val());
     globals.session.subscribe(globals.gameTopic,globals.gameevent);
     globals.session.publish(globals.gameTopic, ['JOIN',globals.userTopic, $('#team').val() === '' ? 'red' : $('#team').val()]);
 });

@@ -65,20 +65,33 @@ class Game
             }
             if(!$this->running) {
                 switch($command) {
-                    case 'JOIN':
+                    case 'CONNECT GAME':
                         if (isset($this->players[$userId])) {
-                            echo "Playes tries to join as existing player\n";
+                            echo "User tries to connect game as existing player\n";
                             return;
-                    }
+                        }
+                        $this->players[$userId] = new Player($userId);
+                        $this->clientSession->publish($userId, ['CONNECT GAME OK']);
+                        $this->clientSession->publish($this->gameTopic, ['USER CONNECTED GAME', $userId]);
+                        break;
+                    case 'JOIN':
+                        if (!isset($this->players[$userId])) {
+                            echo "There is no user like that in the game\n";
+                            return;
+                        }
                         if (!isset($args[2]))
                             return;
                         $team = $args[2];
                         if (!isset($this->teams[$team]))
                             echo "Can't join unexisting team\n";
-                        $this->players[$userId] = new Player($userId, $team);
+                        $prevTeamName = $this->players[$userId]->getTeam();
+                        if ($prevTeamName) {
+                            $this->teams[$prevTeamName]->removePlayer($userId);
+                        }
+                        $this->players[$userId]->setTeam($team);
                         $this->teams[$team]->addPlayer($this->players[$userId]);
                         $this->clientSession->publish($userId, ['JOIN OK']);
-                        $this->clientSession->publish($this->gameTopic, ['USER JOINED', $userId]);
+                        $this->clientSession->publish($this->gameTopic, ['USER JOINED TEAM', $userId, $team]);
                         break;
                     case 'START':
                         $this->removeEmptyTeams();
@@ -110,7 +123,6 @@ class Game
                         $direction = $args[2];
                         echo "Player pushed $direction\n";
                         $this->players[$userId]->push($direction);
-                        echo "Are objects equal: ". ($this->players[$userId] === $this->teams['red']->getPlayer($userId) ? "TRUE\n" : "FALSE\n");
                         $this->clientSession->publish($userId, ['PUSH OK']);
                         break;
                     case 'RELEASE':
@@ -128,7 +140,6 @@ class Game
             };
 
         $this->privateHandler = function ($args) {
-            echo "Game of private topic $this->gamePrivateTopic recieved command $args[0]\n";
             switch($args[0]) {
                 case 'UPDATE':
                     echo "update recieved\n";

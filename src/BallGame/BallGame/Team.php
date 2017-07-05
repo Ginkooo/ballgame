@@ -26,6 +26,10 @@ class Team
         return $this->players;
     }
 
+    public function removePlayer($id) {
+        unset($this->players[$id]);
+    }
+
     public function getPlayer($id) {
         return $this->players[$id];
     }

@@ -21,7 +21,7 @@ class Player
         'right' => false,
         ];
 
-    public function __construct($id, $team)
+    public function __construct($id, $team = null)
     {
         $this->team = $team;
         $this->id = $id;
@@ -46,5 +46,9 @@ class Player
 
     public function getTeam() {
         return $this->team;
+    }
+
+    public function setTeam(String $teamName) {
+        $this->team = $teamName;
     }
 }
