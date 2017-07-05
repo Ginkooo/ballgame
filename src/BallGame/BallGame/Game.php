@@ -137,7 +137,7 @@ class Game
                         break;
                 }
             }
-            };
+        };
 
         $this->privateHandler = function ($args) {
             switch($args[0]) {

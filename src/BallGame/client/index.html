@@ -3,25 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <title>Pulling Simulator</title>
-    <link rel="stylesheet" type="text/css" href="styles.css" />
+    <link rel="stylesheet" type="text/css" href="styles.css"/>
 </head>
 <body>
 <div id="statusBar">
     <p class="statusItem">User:<span id="userTopicHeader"></span></p>
     <p class="statusItem">Game:<span id="gameTopicHeader"></span></p>
+    <p class="statusItem">Team:<span id="teamHeader"></span></p>
 </div>
 
 <div id="left">
     <div id="loginDiv">
         <label for="userTopic">Type your user topic:</label>
-        <input type="text" id="userTopic" />
+        <input type="text" id="userTopic"/>
         <button id="loginButton">Login</button>
     </div>
 
     <div id="makeGameDiv">
         <label for="gameTopic">Type desired game topic:</label>
-        <input type="text" id="gameTopic" />
-        <input type="text" id="teamNames" />
+        <input type="text" id="gameTopic"/>
+        <input type="text" id="teamNames"/>
         <button id="makeGameButton">Make game</button>
     </div>
 
@@ -29,13 +30,13 @@
 
     <div id="connectGameDiv">
         <label for="gameTopicConnect">Type game topic to connect to</label>
-        <input type="text" id="gameTopicConnect" />
+        <input type="text" id="gameTopicConnect"/>
         <button id="connectGameButton">Connect game!</button>
     </div>
 
     <div id="joinGameDiv">
         <label for="team">Team:</label>
-        <input type="text" id="team" />
+        <input type="text" id="team"/>
         <button id="joinTeamButton">Join</button>
     </div>
 
@@ -54,17 +55,22 @@
         <button id="listTeamsButton">List teams</button>
         <ul id="teamList"></ul>
     </div>
+</div>
 
 <h1 id="winHeader"></h1>
 <div id="right">
-<canvas id="gameWindow" width="400" height="400"></canvas>
+    <canvas id="gameWindow" width="400" height="400"></canvas>
 </div>
 
 <script
-  src="https://code.jquery.com/jquery-3.2.1.min.js"
-  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-  crossorigin="anonymous"></script>
+        src="https://code.jquery.com/jquery-3.2.1.min.js"
+        integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+        crossorigin="anonymous"></script>
 <script src="autobahn-js-built/autobahn.min.js"></script>
-<script src="scripts.js"></script>
+<script src="viewcontroller.js"></script>
+<script src="user.js"></script>
+<script src="game.js"></script>
+<script src="client.js"></script>
+<script src="newscripts.js"></script>
 </body>
 </html>

@@ -8,3 +8,7 @@
     height: 50px;
     background: #FFFFDF;
 }
+
+label {
+    display: block;
+}

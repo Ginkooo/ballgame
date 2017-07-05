@@ -157,34 +157,6 @@ globals.moveBalls = function(ballPositions) {
     })
 }
 
-$('#loginButton').click(function () {
-    console.log('Logging as', $('#userTopic').val())
-    globals.session.subscribe($('#userTopic').val(),globals.userevent);
-    globals.session.publish('global', ['LOG', $('#userTopic').val()]);
-});
-
-$('#makeGameButton').click(function() {
-    console.log("Making game of topic", $('#gameTopic').val());
-    globals.session.subscribe($('#gameTopic').val(),globals.gameevent)
-    globals.session.publish('global', ['MAKE GAME',globals.userTopic, $('#gameTopic').val()].concat(globals.getRequriredTeamNames()));
-});
-
-$('#startGameButton').click(function () {
-    console.log("Starting game");
-    globals.session.publish(globals.gameTopic, ['START',globals.userTopic]);
-});
-
-$('#listTeamsButton').click(function() {
-    console.log('Sending LIST TEAMS');
-    globals.session.publish(globals.gameTopic, ['LIST TEAMS', globals.userTopic]);
-});
-
-$('#connectGameButton').click(function() {
-    console.log("Connecting a game\n");
-    globals.connectingGameTopic = $('#gameTopicConnect').val();
-    globals.session.publish(globals.connectingGameTopic, ['CONNECT GAME', globals.userTopic]);
-});
-
 $(document).keydown(function(event) {
     if(!globals.gameRunning)
         return;
@@ -254,12 +226,7 @@ $('#listGamesButton').click(function() {
 });
 
 $('#joinTeamButton').click(function() {
-    console.log('JOINing team:',$('#team').val());
-    globals.session.subscribe(globals.gameTopic,globals.gameevent);
-    globals.session.publish(globals.gameTopic, ['JOIN',globals.userTopic, $('#team').val() === '' ? 'red' : $('#team').val()]);
 });
 
 $('#listPlayersButton').click(function () {
-    console.log("Sending request for player list");
-    globals.session.publish(globals.gameTopic, ['LIST PLAYERS',globals.userTopic]);
 });
