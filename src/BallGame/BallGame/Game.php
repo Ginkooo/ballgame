@@ -117,7 +117,7 @@ class Game
                             echo "Player isnt sabotaging\n";
                             $this->teams[$sabotageTeam]->addPlayer($player);
                         }
-                        $this->clientSession->publish($userId, ['JOIN OK']);
+                        $this->clientSession->publish($userId, ['JOIN OK', $team]);
                         $this->clientSession->publish($this->gameTopic, ['USER JOINED TEAM', $userId, $team, $sabotageTeam]);
                         break;
                     case 'START':

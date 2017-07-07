@@ -40,6 +40,8 @@ connection.onopen = function (sess, details) {
                 }
                 break;
             case 'JOIN OK':
+                var team = args[1];
+                $('#teamHeader').html(team);
                 $('#gameTopicHeader').html(globals.gameTopic);
                 break;
             case 'PLAYERS':
