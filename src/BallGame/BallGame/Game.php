@@ -58,7 +58,14 @@ class Game
                     echo "Listing teams\n";
                     $ret = [];
                     foreach($this->teams as $team) {
-                        $ret[] = $team->getName() . " (". count($team->getPlayers()) . ")";
+                        $sabotagerCount = $playerCount = 0;
+                        foreach ($team->getPlayers() as $player) {
+                            if ($player->isSabotaging())
+                                $sabotagerCount++;
+                            else
+                                $playerCount++;
+                        }
+                        $ret[] = $team->getName() . " (". $playerCount . ")" . " sabotagers: " . "(" . $sabotagerCount . ")";
                     }
                     $this->clientSession->publish($userId, array_merge(['TEAMS'], $ret));
                     break;
@@ -82,16 +89,36 @@ class Game
                         if (!isset($args[2]))
                             return;
                         $team = $args[2];
-                        if (!isset($this->teams[$team]))
+                        $sabotageTeam = $args[3];
+                        if ($sabotageTeam)
+                            echo "User wants of team $team wants to sabotage $sabotageTeam\n";
+                        if ($sabotageTeam && !isset($this->teams[$sabotageTeam])) {
+                            echo "Can't sabotage unexisting team\n";
+                            return;
+                        }
+                        if (!isset($this->teams[$team])) {
                             echo "Can't join unexisting team\n";
+                            return;
+                        }
                         $prevTeamName = $this->players[$userId]->getTeam();
-                        if ($prevTeamName) {
+                        if ($prevTeamName && isset($this->teams[$prevTeamName])) {
                             $this->teams[$prevTeamName]->removePlayer($userId);
                         }
-                        $this->players[$userId]->setTeam($team);
-                        $this->teams[$team]->addPlayer($this->players[$userId]);
+                        $player = $this->players[$userId];
+                        $player->setTeam($team);
+                        if ($sabotageTeam) {
+                            $player->setSabotageFor($team);
+                        }
+                        if (!$player->isSabotaging()) {
+                            echo "Playes is sabotaging now\n";
+                            $this->teams[$team]->addPlayer($player);
+                        }
+                        else {
+                            echo "Player isnt sabotaging\n";
+                            $this->teams[$sabotageTeam]->addPlayer($player);
+                        }
                         $this->clientSession->publish($userId, ['JOIN OK']);
-                        $this->clientSession->publish($this->gameTopic, ['USER JOINED TEAM', $userId, $team]);
+                        $this->clientSession->publish($this->gameTopic, ['USER JOINED TEAM', $userId, $team, $sabotageTeam]);
                         break;
                     case 'START':
                         $this->removeEmptyTeams();
@@ -194,7 +221,7 @@ class Game
 
     private function isNear($point1, $point2) {
         echo "POINT1 [$point1[0], $point1[1]] POINT2 [$point2[0], $point2[1]]\n";
-        $epsilon = 3;
+        $epsilon = 6;
         if (abs($point1[0] - $point2[0]) <= $epsilon && abs($point1[1] - $point2[1]) <= $epsilon)
             return true;
         return false;

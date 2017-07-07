@@ -13,6 +13,7 @@ class Player
 {
     private $id;
     private $team;
+    private $sabotagingFor = null;
 
     private $pushArray = [
         'up' => false,
@@ -50,5 +51,18 @@ class Player
 
     public function setTeam(String $teamName) {
         $this->team = $teamName;
+    }
+
+    public function setSabotageFor($teamName) {
+        echo "Setting sabotage for\n";
+        $this->sabotagingFor = $teamName;
+    }
+
+    public function getSabotageFor($teamName) {
+        return $this->sabotagingFor;
+    }
+
+    public function isSabotaging () {
+        return (bool)$this->sabotagingFor;
     }
 }

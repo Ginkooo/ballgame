@@ -40,7 +40,7 @@ connection.onopen = function (sess, details) {
                 }
                 break;
             case 'JOIN OK':
-                $('#gameTopicHeader').html('Game: ' +globals.gameTopic);
+                $('#gameTopicHeader').html(globals.gameTopic);
                 break;
             case 'PLAYERS':
                 $('#playerList').html('');
@@ -89,6 +89,14 @@ connection.onopen = function (sess, details) {
                 }
                 globals.redraw(positions);
                 break;
+            case 'USER JOINED TEAM':
+                var user = args[1];
+                var team = args[2];
+                var sabotaging = args[3];
+
+                if (globals.userTopic === user && sabotaging) {
+                    $('#gameTopicHeader').html(globals.gameTopic + " (sabotaging " + sabotaging + ")");
+                }
         }
     }
 
@@ -256,7 +264,10 @@ $('#listGamesButton').click(function() {
 $('#joinTeamButton').click(function() {
     console.log('JOINing team:',$('#team').val());
     globals.session.subscribe(globals.gameTopic,globals.gameevent);
-    globals.session.publish(globals.gameTopic, ['JOIN',globals.userTopic, $('#team').val() === '' ? 'red' : $('#team').val()]);
+    globals.session.publish(globals.gameTopic, ['JOIN',globals.userTopic,
+        $('#team').val() === '' ? 'red' : $('#team').val(),
+        $('#sabotage').val()
+    ]);
 });
 
 $('#listPlayersButton').click(function () {
