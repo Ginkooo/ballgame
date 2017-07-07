@@ -25,11 +25,11 @@ connection.onopen = function (sess, details) {
             case 'LOG OK':
                 globals.userTopic = $('#userTopic').val();
                 console.log("Setting userTopic header");
-                $('#userTopicHeader').html('Logged as: ' +globals.userTopic);
+                $('#userTopicHeader').html(globals.userTopic);
                 break;
             case 'MAKE GAME OK':
                 globals.gameTopic = $('#gameTopic').val();
-                $('#gameTopicHeader').html('Game: ' +globals.gameTopic + ' (owner)');
+                $('#gameTopicHeader').html(globals.gameTopic + ' (owner)');
                 $('#startGameButton').css('display', '');
                 break;
             case 'GAMES':
