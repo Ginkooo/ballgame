@@ -17,12 +17,5 @@ function Client(host, port) {
         console.log("Global Event: ", JSON.stringify(args));
     }
 
-    var prvgameevent = function prvgameevent(args) {
-        console.log("Private game Event: ", JSON.stringify(args));
-    }
-
-    var userprvevent = function userprvevent(args) {
-        console.log("Private user event ", JSON.stringify(args))
-    }
     self.connection.open();
 }

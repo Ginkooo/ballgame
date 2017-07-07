@@ -61,7 +61,7 @@ function User() {
         onJoinTeamClick: function () {
             var team = textFields.team.val();
             console.log('JOINing team:', team);
-            globals.session.subscribe(gameTopic, globals.gameevent);
+            globals.session.subscribe(gameTopic, globals.gameEvent);
             globals.session.publish(gameTopic, ['JOIN', userTopic, team === '' ? 'red' : $('#team').val()]);
         },
 
@@ -125,7 +125,7 @@ function User() {
         return userTopic;
     };
 
-    globals.userEvent = self.onevent = function (args) {
+    globals.userEvent = self.onEvent = function (args) {
         console.log("User Event: ", JSON.stringify(args));
         if (!responseHandlers[args[0]]) {
             console.log("Bad response");
